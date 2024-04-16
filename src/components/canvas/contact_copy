@@ -1,0 +1,192 @@
+import { useRef, useState } from "react";
+import { motion } from "framer-motion";
+// importing email js for contact uses
+import emailjs from "@emailjs/browser";
+
+import { styles } from "../styles";
+import { EarthCanvas } from "./canvas";
+import { slideIn } from "../utils/motion";
+import { SectionWrapper } from "../hoc";
+import { EqualStencilFunc } from "three";
+
+const Contact = () => {
+  const formRef = useRef();
+  // creating the form for contact using useState
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+
+  // dispatcher
+  const [invalidForm, setInvalidForm] = useState({
+    isFormInvalid: false,
+    message: "",
+  });
+
+  // loading
+  const [loading, setLoading] = useState(false);
+
+  // allowing visitors to input name email and messages
+  const handleChange = (e) => {
+    // getting the target name and value
+    const { name, value } = e.target;
+
+    console.log(e.target.name)
+    // validering av namn
+    if(name == 'name' && value != '' && value.lenght >= 2)
+    // validering av email
+    if(name == 'email' && value.contains('.')){
+      console.log('saknar @')
+    }
+    else if(name == 'email' && !value.contains('@')){
+      console.log('saknar @')
+    } 
+    else{
+      console.log('saknar @')
+    }
+    
+    // we are updating the name in form to the newly created value
+    setForm({ ...form, [name]: value });
+  };
+
+  const handleSubmit = (e) => {
+    // preventing browser to reload after submit
+    e.preventDefault();
+    // starting the sending of message
+    setLoading(true);
+
+    // validering
+    if (form.name != "" && form.email != "") {
+      // calling the emailjs send function inlucing serviceID, templateID, publicKey
+      emailjs
+        .send(
+          "service_s611s5x",
+          "template_uoj8ntz",
+          {
+            from_name: form.name, // setting up the senders name
+            to_name: "Sodiq", // setting up the receivers name
+            form_email: form.email, // setting up the senders email
+            to_email: "sodiqworks3@gmail.com",
+            message: form.message, // sending the message
+          },
+
+          "-N_NsBSneUWuDJ-5K"
+        )
+        // leting the sender know i received the email
+        .then(
+          () => {
+            setLoading(false);
+            alert("Thank you. I will get back to you as soon as possible.");
+
+            // resetting the form
+            setForm({
+              name: "",
+              email: "",
+              message: "",
+            });
+            // creating another callback function
+          },
+          (error) => {
+            setLoading(false);
+            console.log(error);
+            alert("Something went wrong.");
+          }
+        );
+    } else {
+      setInvalidForm({
+        isFormInvalid: true,
+        message: "name or email is invalid.",
+      });
+    }
+  };
+
+  return (
+    // creating contact page
+    <div
+      className={`xl:mt-12 flex xl:flex-row flex-col-reverse gap-10 overflow-hidden`}
+    >
+      {/* adding motion to the page with variants slide from left and tween. 0.2 seconds delay and iteration 1*/}
+      <motion.div
+        variants={slideIn("left", "tween", 0.2, 1)}
+        className="flex-[0.75] bg-black-100 p-8 rounded-2xl"
+      >
+        {/* creating text for contact */}
+        <p className={styles.sectionSubText}>Get in touch</p>
+        <h3 className={styles.sectionHeadText}>Contact.</h3>
+        {/* creating label form with handleSubmit function added to it*/}
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit}
+          className="mt-12 flex flex-col gap-8"
+        >
+          {/* creating name label in html */}
+          <label className="flex flex-col">
+            {/* creating name label */}
+            <span className="text-white font-medium mb-4">Your Name</span>
+            {/* creating name input */}
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder="What's your name?"
+              className="bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium"
+            />
+          </label>
+          
+          {invalidForm.isFormInvalid && <label>{invalidForm.message}</label>}
+
+          {/* creating email labels in html */}
+          <label className="flex flex-col">
+            {/* creating email label */}
+            <span className="text-white font-medium mb-4">Your email</span>
+            {/* creating email input */}
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="What's your email address?"
+              className="bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium"
+            />
+          </label>
+
+           {/* if validate is not true, show this label */}
+          {invalidForm.isFormInvalid && <label>{invalidForm.message}</label>}
+          {/* creating message labels in html */}
+          <label className="flex flex-col">
+            <span className="text-white font-medium mb-4">Your Message</span>
+            {/* creating message text area */}
+            <textarea
+              rows={7}
+              name="message"
+              value={form.message}
+              onChange={handleChange}
+              placeholder="What you want to say?"
+              className="bg-tertiary py-4 px-6 placeholder:text-secondary text-white rounded-lg outline-none border-none font-medium"
+            />
+          </label>
+
+          {/* creating the submit button for contact */}
+          <button
+            type="submit"
+            className="bg-tertiary py-3 px-8 rounded-xl outline-none w-fit text-white font-bold shadow-md shadow-primary"
+          >
+            {/* changing text if we are submitting to sending, if not name is send */}
+            {loading ? "Sending..." : "Send"}
+          </button>
+        </form>
+      </motion.div>
+      {/* Adding the floating earth */}
+      <motion.div
+        variants={slideIn("right", "tween", 0.2, 1)}
+        className="xl:flex-1 xl:h-auto md:h-[550px] h-[350px]"
+      >
+        <EarthCanvas />
+      </motion.div>
+    </div>
+  );
+};
+
+export default SectionWrapper(Contact, "contact");
